@@ -1,14 +1,25 @@
+# Wallet Scan
+A convenient tool for viewing and managing addresses.
 
-# Try it now!
+## Installation and Usage
 
-https://walletscan.netlify.app/
+To run:
 
-## Todo
-[] realtime api
-  - [] gas api: https://etherscan.io/autoUpdateGasTracker.ashx?sid=7f7d484b1cbef5280d2db7d614d56bfc highPrice/avgPrice/lowPrice
-  - [] eth price: https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD
-[] i18n
-[] board on twitter
-[] coffee
-[x] zkflow
-[] create a new github account&repo and deploy
+```
+git clone
+npm i
+npm run dev
+```
+
+## Instructions
+
+1. This project is purely front-end and does not involve any back-end operations. All data is obtained through browser access to the zkSync and stark official interfaces and no data is uploaded.
+
+2. All project data is stored in the browser's local storage and no data is uploaded.
+
+3. If you encounter any bugs or have any suggestions, feel free to raise an issue or submit a pull request.
+
+4. This project is intended for learning and exchange purposes only and does not provide any form of technical support. Any consequences arising from the use of this project are not the responsibility of the author.
+
+
+
