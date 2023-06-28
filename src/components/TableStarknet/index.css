@@ -33,4 +33,6 @@
   text-overflow: ellipsis;
 }
 
-
+.copied {
+  color: #18a058;
+}

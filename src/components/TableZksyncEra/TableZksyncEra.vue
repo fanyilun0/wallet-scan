@@ -6,7 +6,7 @@ import { NA, NButton, NDynamicTags, NPopconfirm, NProgress, NSpin, RowKey } from
 import { etherCols, zkSyncEraCols, zkSyncLiteCols } from './createCols'
 import type { zkSyncEraListItemType, zkSyncEraListType } from './zksyncEraType'
 import { useLocalStorage } from './use-local-storage.hook'
-import { e } from './address'
+import { e, c } from './address'
 import {
   getEthBalance,
   getTxCount,
@@ -15,7 +15,9 @@ import {
   getZksLite,
 } from '~/utils'
 import { InternalRowData } from 'naive-ui/es/data-table/src/interface'
+import { useClipboard } from '@vueuse/core'
 
+const { text, copy, copied, isSupported } = useClipboard()
 const { getDataStorage, updateDataStroage, debounceUpdateDataStorage, createTarget, updateTargetStroage } = useLocalStorage()
 const data = ref<zkSyncEraListType>(getDataStorage())
 const columns = ref<DataTableColumn[]>(attachColCommonProps(createCols()))
@@ -40,10 +42,18 @@ const renderCell = (value: string | number, rowData: zkSyncEraListItemType, colu
   }
 
   if (column.key === 'address') {
-    return h(NA, {
-      href: `https://zksync2-mainnet.zkscan.io/address/${rowData.address}`,
-      target: '_blank',
-    }, () => rowData.address)
+    return h('div', { 'relative': '', }, [
+      h(NA, {
+        href: `https://zksync2-mainnet.zkscan.io/address/${rowData.address}`,
+        target: '_blank',
+      }, () => rowData.address),
+      isSupported ? h('span', {
+        class: [{ 'i-carbon-copy': true, copied: text.value === rowData.address }],
+        w: '16px', absolute: '',  cursor: 'pointer',
+        style: {'right':'-6px', 'bottom':'4px'},
+        onClick: () => copy(rowData.address)
+      }) : null
+    ])
   }
 
 
@@ -217,14 +227,14 @@ function updateData(address: string, padding: Record<string, any>) {
   debounceUpdateDataStorage(data.value)
 }
 
-function getDataByAddress(address: string) {
+function getDataByAddress(address: string, padding = {}) {
   if (address.length !== 42) {
     console.error(`${address} \n 地址解析错误,请输入正确的地址`)
     return
   }
 
   if (!data.value.find(item => item.address === address)) {
-    updateData(address, { marker: [] })
+    updateData(address, padding ?? { marker: [] })
   }
 
   getEthByAddress(address)
@@ -279,7 +289,7 @@ function submitTarget() {
 }
 
 // init
-// e.map(getDataByAddress)
+e.map((address)=>getDataByAddress(address,c[address]))
 </script>
 
 <template>
@@ -321,9 +331,9 @@ function submitTarget() {
     negative-text="Cancel" @positive-click="submitTarget">
     <n-form ref="formRef" :model="targetModelForm" label-placement="left" label-width="auto"
       require-mark-placement="right-hanging" size="small" :style="{
-        maxWidth: '640px',
+        maxWidth: '400px',
       }">
-      <n-form-item label="zkSyncEra Tx Counts ≥" path="zkSyncEraTx">
+      <n-form-item label="Tx Counts ≥" path="zkSyncEraTx">
         <n-input-number v-model:value="targetModelForm.zkSyncEraTx" />
       </n-form-item>
     </n-form>

@@ -14,7 +14,9 @@ import {
   getStarkPortfolio,
 } from '~/utils'
 import { InternalRowData } from 'naive-ui/es/data-table/src/interface'
+import { useClipboard } from '@vueuse/core'
 
+const { text, copy, copied, isSupported } = useClipboard()
 const { getDataStorage, updateDataStroage, debounceUpdateDataStorage, createTarget, updateTargetStroage } = useLocalStorage()
 const data = ref<starknetListType>(getDataStorage())
 const columns = ref<DataTableColumn[]>(attachColCommonProps(createCols()))
@@ -41,10 +43,18 @@ const renderCell = (value: string | number, rowData: starknetListItemType, colum
   }
 
   if (column.key === 'address') {
-    return h(NA, {
-      href: `https://starkscan.co/contract/${rowData.address}`,
-      target: '_blank',
-    }, () => rowData.address)
+    return h('div', { 'relative': '', }, [
+      h(NA, {
+        href: `https://zksync2-mainnet.zkscan.io/address/${rowData.address}`,
+        target: '_blank',
+      }, () => rowData.address),
+      isSupported ? h('span', {
+        class: [{ 'i-carbon-copy': true, copied: text.value === rowData.address }],
+        w: '16px', absolute: '',  cursor: 'pointer',
+        style: {'right':'-6px', 'bottom':'4px'},
+        onClick: () => copy(rowData.address)
+      }) : null
+    ])
   }
 
   if (DEPOSIT_AND_WITHDRAW_KEYS.includes(column.key as string)) {
@@ -282,7 +292,7 @@ s.map(getDataByAddress)
         Refresh
       </n-button>
 
-      <NPopconfirm  @positive-click="deleteRows">
+      <NPopconfirm @positive-click="deleteRows">
         <template #trigger>
           <n-button type="error">
             delete
@@ -302,23 +312,23 @@ s.map(getDataByAddress)
   </n-space>
 
   <n-data-table size="small" title-align="center" align="center" :data="data" :columns="columns" :single-line="false"
-  max-height="72vh" :render-cell="renderCell" :checked-row-keys="checkedRowKeys" :row-key="rowData => rowData.address"
+    max-height="72vh" :render-cell="renderCell" :checked-row-keys="checkedRowKeys" :row-key="rowData => rowData.address"
     @update:checked-row-keys="handleCheck" />
 
-    <n-modal v-model:show="showTargetModal" preset="dialog" title="Set wallet interaction target" positive-text="Confirm" negative-text="Cancel"
-    @positive-click="submitTarget">
+  <n-modal v-model:show="showTargetModal" preset="dialog" title="Set wallet interaction target" positive-text="Confirm"
+    negative-text="Cancel" @positive-click="submitTarget">
     <n-form ref="formRef" :model="targetModelForm" label-placement="left" label-width="auto"
       require-mark-placement="right-hanging" size="small" :style="{
-        maxWidth: '640px',
+        maxWidth: '400px',
       }">
-      <n-form-item label="zkSyncEra Tx Counts ≥" path="starknetTx">
+      <n-form-item label="Tx Counts ≥" path="starknetTx">
         <n-input-number v-model:value="targetModelForm.starknetTx" />
       </n-form-item>
     </n-form>
   </n-modal>
 
-  <n-modal v-model:show="showAddAddressModal" preset="dialog" title="Add Address "
-    @positive-click="submitAddress">
+  <n-modal v-model:show="showAddAddressModal" preset="dialog" title="Add Address " positive-text="Confirm"
+    negative-text="Cancel" @positive-click="submitAddress">
     <n-input v-model:value="addresses" type="textarea" placeholder="One line, one address." />
   </n-modal>
 </template>

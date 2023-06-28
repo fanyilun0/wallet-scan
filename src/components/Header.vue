@@ -4,16 +4,25 @@ import { MenuOption, NA, NumberAnimationInst } from 'naive-ui'
 import { RouterLink } from 'vue-router'
 import getEthPrice from "~/utils/ether/getEthPrice.js";
 import getGasPrice from "~/utils/ether/getGasPrice.js";
+import { useLocalStorage } from '@vueuse/core';
 
+interface GasLog {
+  gas: string;
+  time: string;
+}
+
+const minGasLog = useLocalStorage<GasLog[]>('minGasLog', []);
+const maxGasLog = useLocalStorage<GasLog[]>('maxGasLog', []);
+const showGasLog = ref(false);
 const numberAnimationInstRef = ref<NumberAnimationInst | null>(null)
 const numberAnimationInstRef1 = ref<NumberAnimationInst | null>(null)
 const eth_price_from = ref(0);
 const eth_price_to = ref(0);
-const min_price = ref(1000);
-const max_price = ref(1);
+const min_price = ref(minGasLog?.value[0]?.gas || 1000);
+const max_price = ref(maxGasLog?.value[0]?.gas || 0);
 const gas_price_from = ref(0);
 const gas_price_to = ref(0);
-const badgeOffser = [-66,-6];
+const badgeOffser = [-66, -6];
 const menuOptions: MenuOption[] = [
   {
     label: () =>
@@ -44,7 +53,7 @@ const menuOptions: MenuOption[] = [
 ]
 
 const requestEthPrice = () => {
-  getEthPrice().then((price) => {
+  getEthPrice().then((price: string) => {
     if (price) {
       eth_price_from.value = +eth_price_to.value
       eth_price_to.value = +price
@@ -55,15 +64,17 @@ const requestEthPrice = () => {
 }
 
 const requestGasPrice = () => {
-  getGasPrice().then((price) => {
+  getGasPrice().then((price: string) => {
     if (price) {
       gas_price_from.value = +gas_price_to.value
       gas_price_to.value = +price
       if (min_price.value > gas_price_to.value) {
         min_price.value = gas_price_to.value
+        minGasLog.value.unshift({ gas: price, time: new Date().toLocaleString() });
       }
       if (max_price.value < gas_price_to.value) {
         max_price.value = gas_price_to.value
+        maxGasLog.value.unshift({ gas: price, time: new Date().toLocaleString() });
       }
       numberAnimationInstRef.value?.play()
     }
@@ -77,7 +88,7 @@ requestGasPrice();
 
 <template>
   <div text="center" relative>
-    <n-menu mode="horizontal" :options="menuOptions" />
+    <n-menu mode="horizontal" :options="menuOptions" text-xl/>
     <n-space inline align="center" h="42px" absolute right="0" text-lg>
       <n-a target="_blank" href="https://twitter.com/fanyilun0">
         <div i-carbon-logo-twitter></div>
@@ -92,7 +103,7 @@ requestGasPrice();
         </n-a>
       </router-link>
 
-      <n-badge type="success" :value="`${min_price}-${max_price}`" :offset="badgeOffser">
+      <n-badge type="success" :value="`${min_price}-${max_price}`" :offset="badgeOffser" @click="showGasLog = true">
         <n-a target="_blank" href="https://etherscan.io/gastracker">
           <div flex items="center">
             <div i-carbon-gas-station></div>
@@ -109,5 +120,20 @@ requestGasPrice();
         </div>
       </n-a>
     </n-space>
+
+    <n-modal v-model:show="showGasLog" preset="dialog" title="Gas Log">
+      <n-scrollbar style="max-height: 520px">
+        <n-space justify="space-between">
+          <n-timeline>
+            <n-timeline-item v-for="item in minGasLog" :key="item.time"
+              :type="+item.gas <= 15 ? 'success' : 'info'" :title="item.gas" :time="item.time" />
+          </n-timeline>
+          <n-timeline>
+            <n-timeline-item v-for="item in maxGasLog" :key="item.time"
+              :type="+item.gas >= 25 ? 'error' : 'warning'" :title="item.gas" :time="item.time" />
+          </n-timeline>
+        </n-space>
+      </n-scrollbar>
+    </n-modal>
   </div>
 </template>
