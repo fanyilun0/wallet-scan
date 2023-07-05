@@ -6,7 +6,7 @@ import { NA, NButton, NDynamicTags, NPopconfirm, NProgress, NSpin, RowKey } from
 import { etherCols, zkSyncEraCols, zkSyncLiteCols } from './createCols'
 import type { zkSyncEraListItemType, zkSyncEraListType } from './zksyncEraType'
 import { useLocalStorage } from './use-local-storage.hook'
-import { e, c } from './address'
+import { e } from './address'
 import {
   getEthBalance,
   getTxCount,
@@ -227,14 +227,14 @@ function updateData(address: string, padding: Record<string, any>) {
   debounceUpdateDataStorage(data.value)
 }
 
-function getDataByAddress(address: string, padding = {}) {
+function getDataByAddress(address: string) {
   if (address.length !== 42) {
     console.error(`${address} \n 地址解析错误,请输入正确的地址`)
     return
   }
 
   if (!data.value.find(item => item.address === address)) {
-    updateData(address, padding ?? { marker: [] })
+    updateData(address, { marker: [] })
   }
 
   getEthByAddress(address)
@@ -289,7 +289,7 @@ function submitTarget() {
 }
 
 // init
-e.map((address)=>getDataByAddress(address,c[address]))
+// e.map(getDataByAddress)
 </script>
 
 <template>
@@ -331,9 +331,9 @@ e.map((address)=>getDataByAddress(address,c[address]))
     negative-text="Cancel" @positive-click="submitTarget">
     <n-form ref="formRef" :model="targetModelForm" label-placement="left" label-width="auto"
       require-mark-placement="right-hanging" size="small" :style="{
-        maxWidth: '400px',
+        maxWidth: '640px',
       }">
-      <n-form-item label="Tx Counts ≥" path="zkSyncEraTx">
+      <n-form-item label="zkSyncEra Tx Counts ≥" path="zkSyncEraTx">
         <n-input-number v-model:value="targetModelForm.zkSyncEraTx" />
       </n-form-item>
     </n-form>

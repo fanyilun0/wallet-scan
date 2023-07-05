@@ -319,9 +319,9 @@ s.map(getDataByAddress)
     negative-text="Cancel" @positive-click="submitTarget">
     <n-form ref="formRef" :model="targetModelForm" label-placement="left" label-width="auto"
       require-mark-placement="right-hanging" size="small" :style="{
-        maxWidth: '400px',
+        maxWidth: '640px',
       }">
-      <n-form-item label="Tx Counts ≥" path="starknetTx">
+      <n-form-item label="zkSyncEra Tx Counts ≥" path="starknetTx">
         <n-input-number v-model:value="targetModelForm.starknetTx" />
       </n-form-item>
     </n-form>

@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import { MenuOption, NA, NumberAnimationInst } from 'naive-ui'
 import { RouterLink } from 'vue-router'
-import getEthPrice from "~/utils/ether/getEthPrice.js";
+import { ethPrice } from "~/utils/ether/getEthPrice.js";
 import getGasPrice from "~/utils/ether/getGasPrice.js";
 import { useLocalStorage } from '@vueuse/core';
 
@@ -52,16 +52,25 @@ const menuOptions: MenuOption[] = [
   },
 ]
 
-const requestEthPrice = () => {
-  getEthPrice().then((price: string) => {
-    if (price) {
-      eth_price_from.value = +eth_price_to.value
-      eth_price_to.value = +price
+// const requestEthPrice = () => {
+//   getEthPrice().then((price: string) => {
+//     if (price) {
+//       eth_price_from.value = +eth_price_to.value
+//       eth_price_to.value = +price
 
-      numberAnimationInstRef1.value?.play()
-    }
-  })
-}
+//       numberAnimationInstRef1.value?.play()
+//     }
+//   })
+// }
+
+watch(ethPrice,(price: number) => {
+  if (price) {
+    eth_price_from.value = +eth_price_to.value
+    eth_price_to.value = +price
+
+    numberAnimationInstRef1.value?.play()
+  }
+})
 
 const requestGasPrice = () => {
   getGasPrice().then((price: string) => {
@@ -71,24 +80,26 @@ const requestGasPrice = () => {
       if (min_price.value > gas_price_to.value) {
         min_price.value = gas_price_to.value
         minGasLog.value.unshift({ gas: price, time: new Date().toLocaleString() });
+        if (minGasLog.value.length > 25) minGasLog.value.pop()
       }
       if (max_price.value < gas_price_to.value) {
         max_price.value = gas_price_to.value
         maxGasLog.value.unshift({ gas: price, time: new Date().toLocaleString() });
+        if (minGasLog.value.length > 25) minGasLog.value.pop()
       }
       numberAnimationInstRef.value?.play()
     }
   })
 }
-setInterval(requestEthPrice, 15 * 1000);
-setInterval(requestGasPrice, 15 * 1000);
-requestEthPrice();
+// setInterval(requestEthPrice, 1.5 * 1000);
+// requestEthPrice();
+setInterval(requestGasPrice, 5 * 1000);
 requestGasPrice();
 </script>
 
 <template>
   <div text="center" relative>
-    <n-menu mode="horizontal" :options="menuOptions" text-xl/>
+    <n-menu mode="horizontal" :options="menuOptions" text-xl />
     <n-space inline align="center" h="42px" absolute right="0" text-lg>
       <n-a target="_blank" href="https://twitter.com/fanyilun0">
         <div i-carbon-logo-twitter></div>
@@ -121,16 +132,16 @@ requestGasPrice();
       </n-a>
     </n-space>
 
-    <n-modal v-model:show="showGasLog" preset="dialog" title="Gas Log">
+    <n-modal v-model:show="showGasLog" preset="dialog" title="Gas Log" width="400px">
       <n-scrollbar style="max-height: 520px">
-        <n-space justify="space-between">
+        <n-space justify="space-between" p="l-2 r-4">
           <n-timeline>
-            <n-timeline-item v-for="item in minGasLog" :key="item.time"
-              :type="+item.gas <= 15 ? 'success' : 'info'" :title="item.gas" :time="item.time" />
+            <n-timeline-item v-for="item in minGasLog" :key="item.time" :type="+item.gas <= 15 ? 'success' : 'info'"
+              :title="item.gas" :time="item.time" />
           </n-timeline>
           <n-timeline>
-            <n-timeline-item v-for="item in maxGasLog" :key="item.time"
-              :type="+item.gas >= 25 ? 'error' : 'warning'" :title="item.gas" :time="item.time" />
+            <n-timeline-item v-for="item in maxGasLog" :key="item.time" :type="+item.gas >= 25 ? 'error' : 'warning'"
+              :title="item.gas" :time="item.time" />
           </n-timeline>
         </n-space>
       </n-scrollbar>
